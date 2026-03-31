@@ -159,10 +159,17 @@
   function showSummary() {
     showScreen(summaryScreen);
     const pct = answered > 0 ? Math.round((score / answered) * 100) : 0;
-    document.getElementById('final-score').textContent = `${pct}%`;
-    document.getElementById('final-detail').textContent = `${score} correct out of ${answered} clips`;
 
-    // Category breakdown
+    // Score color based on performance
+    const scoreColor = pct >= 80 ? 'var(--green-light)' : pct >= 50 ? 'var(--yellow)' : 'var(--red-light)';
+    const scoreEmoji = pct >= 80 ? 'Excellent' : pct >= 60 ? 'Good effort' : pct >= 40 ? 'Keep practising' : 'More work needed';
+
+    document.getElementById('final-score').textContent = `${pct}%`;
+    document.getElementById('final-score').style.color = scoreColor;
+    document.getElementById('final-detail').textContent = `${score} correct out of ${answered} clips`;
+    document.getElementById('final-message').textContent = scoreEmoji;
+
+    // Category breakdown with progress bars
     const breakdown = {};
     for (const r of results) {
       const cat = r.clip.category || 'Other';
@@ -172,15 +179,44 @@
     }
 
     const container = document.getElementById('breakdown');
-    container.innerHTML = '';
+    container.innerHTML = '<h3 class="breakdown-title">Breakdown by Category</h3>';
     for (const [cat, data] of Object.entries(breakdown)) {
+      const catPct = Math.round((data.correct / data.total) * 100);
+      const barColor = catPct >= 80 ? 'var(--green)' : catPct >= 50 ? 'var(--yellow)' : 'var(--red)';
       const row = document.createElement('div');
       row.className = 'breakdown-row';
       row.innerHTML = `
-        <span class="cat-name">${cat}</span>
-        <span>${data.correct}/${data.total}</span>
+        <div class="breakdown-info">
+          <span class="cat-name">${cat}</span>
+          <span class="cat-score">${data.correct}/${data.total}</span>
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill" style="width: ${catPct}%; background: ${barColor};"></div>
+        </div>
       `;
       container.appendChild(row);
+    }
+
+    // Clip-by-clip review
+    const reviewContainer = document.getElementById('clip-review');
+    reviewContainer.innerHTML = '<h3 class="breakdown-title">Clip Review</h3>';
+    for (let i = 0; i < results.length; i++) {
+      const r = results[i];
+      const row = document.createElement('div');
+      row.className = `review-row ${r.correct ? 'review-correct' : 'review-wrong'}`;
+      row.innerHTML = `
+        <div class="review-icon">${r.correct ? '&#10003;' : '&#10007;'}</div>
+        <div class="review-detail">
+          <div class="review-title">${r.clip.title}</div>
+          <div class="review-answer">
+            ${r.correct
+              ? `<span class="correct-text">Correct: ${r.clip.correctDecision}</span>`
+              : `<span class="incorrect-text">Your call: ${r.userAnswer}</span> &mdash; <span class="correct-text">Answer: ${r.clip.correctDecision}</span>`
+            }
+          </div>
+        </div>
+      `;
+      reviewContainer.appendChild(row);
     }
   }
 
