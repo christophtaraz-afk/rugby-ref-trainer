@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Clip Editor — Rugby Ref Trainer</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Rugby Ref Trainer</h1>
+      <nav>
+        <a href="index.html">Train</a>
+        <a href="editor.html" class="active">Editor</a>
+      </nav>
+    </header>
+
+    <div class="editor-layout">
+      <!-- Left: Form -->
+      <div>
+        <h2 id="form-title" style="margin-bottom: 16px;">Add New Clip</h2>
+        <form id="clip-form">
+          <div class="form-group">
+            <label for="url-input">YouTube URL</label>
+            <input type="text" id="url-input" placeholder="https://youtube.com/watch?v=..." required>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="start-input">Start Time (seconds)</label>
+              <input type="number" id="start-input" min="0" step="0.5" value="0" required>
+            </div>
+            <div class="form-group">
+              <label for="end-input">End Time (seconds)</label>
+              <input type="number" id="end-input" min="0" step="0.5" value="10" required>
+            </div>
+          </div>
+
+          <div style="margin-bottom: 16px;">
+            <button type="button" id="preview-btn" class="btn btn-secondary btn-small">Preview Clip</button>
+          </div>
+
+          <div class="player-wrapper" style="margin-bottom: 16px;">
+            <div id="editor-player"></div>
+          </div>
+
+          <div class="form-group">
+            <label for="title-input">Clip Title</label>
+            <input type="text" id="title-input" placeholder="e.g. High tackle in midfield">
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="decision-select">Correct Decision</label>
+              <select id="decision-select" required></select>
+            </div>
+            <div class="form-group">
+              <label for="difficulty-select">Difficulty</label>
+              <select id="difficulty-select">
+                <option value="easy">Easy</option>
+                <option value="medium" selected>Medium</option>
+                <option value="hard">Hard</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="explanation-input">Explanation</label>
+            <textarea id="explanation-input" placeholder="Why is this the correct call?"></textarea>
+          </div>
+
+          <div class="form-group">
+            <label for="ref-call-input">Actual Referee Decision</label>
+            <input type="text" id="ref-call-input" placeholder="e.g. Penalty + Yellow Card">
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Save Clip</button>
+            <button type="button" id="cancel-btn" class="btn btn-secondary" style="display: none;">Cancel</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Right: Clip list + Import/Export -->
+      <div>
+        <h2 style="margin-bottom: 16px;">Clip Library</h2>
+        <div id="clip-list"></div>
+
+        <div class="io-area">
+          <h3>Import / Export</h3>
+          <div class="btn-row">
+            <button id="export-btn" class="btn btn-secondary btn-small">Export Custom Clips (JSON)</button>
+          </div>
+          <div class="form-group" style="margin-top: 12px;">
+            <label for="import-area">Paste JSON to import</label>
+            <textarea id="import-area" rows="4" placeholder='[{"videoId":"...","title":"...","correctDecision":"High Tackle",...}]'></textarea>
+          </div>
+          <button id="import-btn" class="btn btn-secondary btn-small">Import</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script src="js/clips.js"></script>
+  <script src="js/youtube.js"></script>
+  <script src="js/editor.js"></script>
+</body>
+</html>

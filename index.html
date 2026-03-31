@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rugby Ref Trainer</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Rugby Ref Trainer</h1>
+      <nav>
+        <a href="index.html" class="active">Train</a>
+        <a href="editor.html">Editor</a>
+      </nav>
+    </header>
+
+    <!-- Welcome Screen -->
+    <div id="welcome-screen" class="screen active">
+      <div class="welcome">
+        <h2>Test Your Eye</h2>
+        <p>Watch short clips from real rugby matches and decide: what's the call? Train your decision-making like a World Rugby referee.</p>
+
+        <div class="filters">
+          <div class="filter-row">
+            <div class="filter-group">
+              <label for="filter-level">Level</label>
+              <select id="filter-level">
+                <option value="all">All Levels</option>
+                <option value="international">International</option>
+                <option value="premiership">Premiership</option>
+                <option value="super rugby">Super Rugby</option>
+                <option value="grassroots">Grassroots</option>
+                <option value="educational">Educational</option>
+              </select>
+            </div>
+            <div class="filter-group">
+              <label for="filter-difficulty">Difficulty</label>
+              <select id="filter-difficulty">
+                <option value="all">All</option>
+                <option value="easy">Easy</option>
+                <option value="medium">Medium</option>
+                <option value="hard">Hard</option>
+              </select>
+            </div>
+            <div class="filter-group">
+              <label for="filter-gender">Category</label>
+              <select id="filter-gender">
+                <option value="all">All Rugby</option>
+                <option value="men">Men's</option>
+                <option value="women">Women's</option>
+                <option value="educational">Educational</option>
+              </select>
+            </div>
+          </div>
+          <p class="clip-count" id="clip-count">0 clips available</p>
+        </div>
+
+        <button id="start-btn" class="btn btn-primary">Start Training</button>
+      </div>
+    </div>
+
+    <!-- Quiz Screen -->
+    <div id="quiz-screen" class="screen">
+      <div class="score-bar">
+        <div class="stat">
+          <span class="stat-label">Score</span>
+          <span class="stat-value" id="score-value">0/0</span>
+        </div>
+        <div class="stat">
+          <span class="stat-label">Accuracy</span>
+          <span class="stat-value" id="accuracy-value">-</span>
+        </div>
+        <div class="stat">
+          <span class="stat-label">Clip</span>
+          <span class="stat-value" id="clip-progress">1/1</span>
+        </div>
+      </div>
+
+      <div class="clip-info">
+        <span class="clip-title" id="clip-title">Loading...</span>
+        <div class="clip-meta">
+          <span class="badge badge-medium" id="clip-difficulty">medium</span>
+          <span id="clip-level" style="color: var(--text-muted); font-size: 0.8rem;"></span>
+        </div>
+      </div>
+
+      <div class="player-wrapper">
+        <div id="yt-player"></div>
+      </div>
+
+      <div style="text-align: center; margin-bottom: 12px;">
+        <button id="make-call-btn" class="btn btn-primary">Make Your Call</button>
+      </div>
+
+      <div id="decision-area" class="decision-area" style="display: none;"></div>
+
+      <div id="result-card" class="result-card" style="display: none;"></div>
+
+      <div class="result-actions" id="result-actions">
+        <button id="replay-btn" class="btn btn-secondary">Replay Clip</button>
+        <button id="next-btn" class="btn btn-primary">Next Clip</button>
+      </div>
+    </div>
+
+    <!-- Empty State -->
+    <div id="empty-screen" class="screen">
+      <div class="empty-state">
+        <h2>No Clips Yet</h2>
+        <p>Add some clips via the Editor to start training.</p>
+        <a href="editor.html" class="btn btn-primary">Go to Editor</a>
+      </div>
+    </div>
+
+    <!-- Summary Screen -->
+    <div id="summary-screen" class="screen">
+      <div class="summary">
+        <h2>Session Complete</h2>
+        <div class="big-score" id="final-score">0%</div>
+        <p id="final-detail">0 correct out of 0 clips</p>
+        <div class="breakdown" id="breakdown"></div>
+        <div style="margin-top: 32px;">
+          <button id="restart-btn" class="btn btn-primary">Train Again</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script src="js/clips.js"></script>
+  <script src="js/youtube.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
