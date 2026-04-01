@@ -79,6 +79,54 @@ header nav a.active { color: var(--green-light); }
   height: 100%;
 }
 
+/* Build-up indicator overlay */
+.buildup-indicator {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  background: rgba(0, 0, 0, 0.7);
+  border-radius: 20px;
+  z-index: 10;
+  font-size: 0.85rem;
+  color: var(--yellow);
+  font-weight: 600;
+  pointer-events: none;
+}
+
+.buildup-pulse {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--yellow);
+  animation: blink 1.2s ease-in-out infinite;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+/* Full game mode badge */
+.badge-fullgame {
+  background: #1a4a6e;
+  color: #7ec8f0;
+}
+
+/* Watch Ref Decision button */
+.btn-watch-ref {
+  background: #1a4a6e;
+  border: 1px solid #2d6a9e;
+  color: #7ec8f0;
+}
+
+.btn-watch-ref:hover {
+  background: #2d6a9e;
+}
+
 /* Screens */
 .screen { display: none; }
 .screen.active { display: block; }

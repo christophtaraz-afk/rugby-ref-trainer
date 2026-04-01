@@ -7,19 +7,34 @@
   const form = document.getElementById('clip-form');
   const clipList = document.getElementById('clip-list');
   const urlInput = document.getElementById('url-input');
+  const modeSelect = document.getElementById('mode-select');
+  const incidentTimes = document.getElementById('incident-times');
+  const fullgameTimes = document.getElementById('fullgame-times');
   const startInput = document.getElementById('start-input');
   const endInput = document.getElementById('end-input');
+  const buildupInput = document.getElementById('buildup-input');
+  const whistleInput = document.getElementById('whistle-input');
+  const aftermathInput = document.getElementById('aftermath-input');
   const titleInput = document.getElementById('title-input');
   const decisionSelect = document.getElementById('decision-select');
   const difficultySelect = document.getElementById('difficulty-select');
   const explanationInput = document.getElementById('explanation-input');
   const refCallInput = document.getElementById('ref-call-input');
   const previewBtn = document.getElementById('preview-btn');
+  const previewAftermathBtn = document.getElementById('preview-aftermath-btn');
   const cancelBtn = document.getElementById('cancel-btn');
   const exportBtn = document.getElementById('export-btn');
   const importBtn = document.getElementById('import-btn');
   const importArea = document.getElementById('import-area');
   const formTitle = document.getElementById('form-title');
+
+  // Mode toggle
+  modeSelect.addEventListener('change', () => {
+    const isFullGame = modeSelect.value === 'fullgame';
+    incidentTimes.style.display = isFullGame ? 'none' : 'grid';
+    fullgameTimes.style.display = isFullGame ? 'block' : 'none';
+    previewAftermathBtn.style.display = isFullGame ? 'inline-block' : 'none';
+  });
 
   // Build decision dropdown
   function buildDecisionDropdown() {
@@ -63,6 +78,7 @@
         <tr>
           <th>Title</th>
           <th>Decision</th>
+          <th>Mode</th>
           <th>Difficulty</th>
           <th>Source</th>
           <th>Actions</th>
@@ -71,9 +87,11 @@
       <tbody>`;
 
     for (const clip of allClips) {
+      const mode = clip.mode === 'fullgame' ? '<span class="badge badge-fullgame">FG</span>' : '';
       html += `<tr>
         <td>${clip.title || clip.id}</td>
         <td>${clip.correctDecision}</td>
+        <td>${mode}</td>
         <td><span class="badge badge-${clip.difficulty || 'medium'}">${clip.difficulty || 'medium'}</span></td>
         <td>${clip.source || 'json'}</td>
         <td class="actions">
@@ -98,14 +116,30 @@
     editingId = id;
     formTitle.textContent = 'Edit Clip';
     urlInput.value = `https://youtube.com/watch?v=${clip.videoId}`;
-    startInput.value = clip.startTime || 0;
-    endInput.value = clip.endTime || 0;
     titleInput.value = clip.title || '';
     decisionSelect.value = clip.correctDecision || '';
     difficultySelect.value = clip.difficulty || 'medium';
     explanationInput.value = clip.explanation || '';
     refCallInput.value = clip.refActualCall || '';
     cancelBtn.style.display = 'inline-block';
+
+    // Set mode and times
+    if (clip.mode === 'fullgame') {
+      modeSelect.value = 'fullgame';
+      buildupInput.value = clip.buildUpStart || 0;
+      whistleInput.value = clip.whistleTime || 0;
+      aftermathInput.value = clip.aftermathEnd || 0;
+      incidentTimes.style.display = 'none';
+      fullgameTimes.style.display = 'block';
+      previewAftermathBtn.style.display = 'inline-block';
+    } else {
+      modeSelect.value = 'incident';
+      startInput.value = clip.startTime || 0;
+      endInput.value = clip.endTime || 0;
+      incidentTimes.style.display = 'grid';
+      fullgameTimes.style.display = 'none';
+      previewAftermathBtn.style.display = 'none';
+    }
   };
 
   // Delete a clip
@@ -116,6 +150,13 @@
     showToast('Clip deleted');
   };
 
+  async function ensurePlayer() {
+    if (!player) {
+      await YouTubePlayer.init('editor-player');
+      player = true;
+    }
+  }
+
   // Preview clip
   previewBtn.addEventListener('click', async () => {
     const videoId = extractVideoId(urlInput.value);
@@ -123,13 +164,29 @@
       showToast('Invalid YouTube URL', true);
       return;
     }
-    const start = parseFloat(startInput.value) || 0;
-    const end = parseFloat(endInput.value) || start + 10;
+    await ensurePlayer();
 
-    if (!player) {
-      await YouTubePlayer.init('editor-player');
-      player = true;
+    if (modeSelect.value === 'fullgame') {
+      const start = parseFloat(buildupInput.value) || 0;
+      const end = parseFloat(whistleInput.value) || start + 25;
+      YouTubePlayer.playClip(videoId, start, end);
+    } else {
+      const start = parseFloat(startInput.value) || 0;
+      const end = parseFloat(endInput.value) || start + 10;
+      YouTubePlayer.playClip(videoId, start, end);
     }
+  });
+
+  // Preview aftermath
+  previewAftermathBtn.addEventListener('click', async () => {
+    const videoId = extractVideoId(urlInput.value);
+    if (!videoId) {
+      showToast('Invalid YouTube URL', true);
+      return;
+    }
+    await ensurePlayer();
+    const start = parseFloat(whistleInput.value) || 0;
+    const end = parseFloat(aftermathInput.value) || start + 15;
     YouTubePlayer.playClip(videoId, start, end);
   });
 
@@ -142,17 +199,27 @@
       return;
     }
 
+    const isFullGame = modeSelect.value === 'fullgame';
+
     const clipData = {
       videoId,
       title: titleInput.value.trim() || 'Untitled Clip',
-      startTime: parseFloat(startInput.value) || 0,
-      endTime: parseFloat(endInput.value) || 10,
+      mode: modeSelect.value,
       correctDecision: decisionSelect.value,
       category: decisionSelect.selectedOptions[0]?.parentElement?.label || '',
       difficulty: difficultySelect.value,
       explanation: explanationInput.value.trim(),
       refActualCall: refCallInput.value.trim(),
     };
+
+    if (isFullGame) {
+      clipData.buildUpStart = parseFloat(buildupInput.value) || 0;
+      clipData.whistleTime = parseFloat(whistleInput.value) || 25;
+      clipData.aftermathEnd = parseFloat(aftermathInput.value) || 40;
+    } else {
+      clipData.startTime = parseFloat(startInput.value) || 0;
+      clipData.endTime = parseFloat(endInput.value) || 10;
+    }
 
     if (!clipData.correctDecision) {
       showToast('Please select a correct decision', true);
@@ -177,6 +244,10 @@
     editingId = null;
     formTitle.textContent = 'Add New Clip';
     form.reset();
+    modeSelect.value = 'incident';
+    incidentTimes.style.display = 'grid';
+    fullgameTimes.style.display = 'none';
+    previewAftermathBtn.style.display = 'none';
     cancelBtn.style.display = 'none';
   }
 

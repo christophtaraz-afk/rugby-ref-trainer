@@ -92,6 +92,14 @@ const YouTubePlayer = (() => {
     player.playVideo();
   }
 
+  function playAftermath(startTime, endTime, onEnd) {
+    if (!player) return;
+    currentEndTime = endTime;
+    onEndCallback = onEnd || null;
+    player.seekTo(startTime, true);
+    player.playVideo();
+  }
+
   function destroy() {
     stopEndTimeChecker();
     if (player) player.destroy();
@@ -99,5 +107,5 @@ const YouTubePlayer = (() => {
     isReady = false;
   }
 
-  return { init, playClip, pause, replay, destroy };
+  return { init, playClip, pause, replay, playAftermath, destroy };
 })();

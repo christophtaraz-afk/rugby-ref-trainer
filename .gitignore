@@ -1,0 +1,9 @@
+# Python virtual environment
+tools/.venv/
+
+# Whistle detection temp files
+tools/*.wav
+tools/*.json
+
+# OS files
+.DS_Store

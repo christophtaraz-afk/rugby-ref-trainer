@@ -9,6 +9,7 @@
   let results = []; // { clip, userAnswer, correct }
   let hasDecided = false;
   let playerReady = false;
+  let phase = 'idle'; // 'buildup' | 'deciding' | 'aftermath' | 'idle'
 
   // DOM refs
   const welcomeScreen = document.getElementById('welcome-screen');
@@ -20,10 +21,13 @@
   const resultCard = document.getElementById('result-card');
   const nextBtn = document.getElementById('next-btn');
   const replayBtn = document.getElementById('replay-btn');
+  const watchRefBtn = document.getElementById('watch-ref-btn');
   const makeCallBtn = document.getElementById('make-call-btn');
+  const buildupIndicator = document.getElementById('buildup-indicator');
   const clipTitle = document.getElementById('clip-title');
   const clipDifficulty = document.getElementById('clip-difficulty');
   const clipLevel = document.getElementById('clip-level');
+  const clipMode = document.getElementById('clip-mode');
   const clipProgress = document.getElementById('clip-progress');
   const scoreValue = document.getElementById('score-value');
   const accuracyValue = document.getElementById('accuracy-value');
@@ -37,6 +41,19 @@
       if (s) s.classList.remove('active');
     });
     screen.classList.add('active');
+  }
+
+  // Helpers to determine clip mode
+  function isFullGame(clip) {
+    return clip.mode === 'fullgame' && clip.whistleTime != null;
+  }
+
+  function getClipStart(clip) {
+    return isFullGame(clip) ? clip.buildUpStart : clip.startTime;
+  }
+
+  function getClipPause(clip) {
+    return isFullGame(clip) ? clip.whistleTime : clip.endTime;
   }
 
   // Filter clips based on selections
@@ -87,6 +104,7 @@
   function handleDecision(decision) {
     if (hasDecided) return;
     hasDecided = true;
+    phase = 'decided';
 
     const clip = clips[currentIndex];
     const isCorrect = decision === clip.correctDecision;
@@ -123,6 +141,13 @@
     resultCard.style.display = 'block';
     makeCallBtn.style.display = 'none';
 
+    // Show "Watch Ref Decision" button for full game clips with aftermath
+    if (isFullGame(clip) && clip.aftermathEnd) {
+      watchRefBtn.style.display = 'inline-block';
+    } else {
+      watchRefBtn.style.display = 'none';
+    }
+
     updateScoreBar();
   }
 
@@ -135,6 +160,7 @@
     const clip = clips[index];
     hasDecided = false;
     resultCard.style.display = 'none';
+    watchRefBtn.style.display = 'none';
 
     clipTitle.textContent = clip.title || `Clip ${index + 1}`;
     clipDifficulty.className = `badge badge-${clip.difficulty || 'medium'}`;
@@ -142,25 +168,53 @@
     if (clipLevel) {
       clipLevel.textContent = clip.level || '';
     }
+    // Show mode badge for full game clips
+    if (clipMode) {
+      if (isFullGame(clip)) {
+        clipMode.textContent = 'Full Game';
+        clipMode.style.display = 'inline-block';
+      } else {
+        clipMode.style.display = 'none';
+      }
+    }
     clipProgress.textContent = `${index + 1} / ${clips.length}`;
 
     // Reset decision buttons
     buildDecisionUI();
     decisionArea.style.display = 'none';
-    makeCallBtn.style.display = 'inline-block';
 
-    YouTubePlayer.playClip(clip.videoId, clip.startTime, clip.endTime, () => {
-      // Clip ended — show decision UI
-      decisionArea.style.display = 'block';
+    const clipStart = getClipStart(clip);
+    const clipPause = getClipPause(clip);
+
+    if (isFullGame(clip)) {
+      // Full game mode: show build-up indicator, hide Make Your Call until whistle
+      phase = 'buildup';
       makeCallBtn.style.display = 'none';
-    });
+      buildupIndicator.style.display = 'block';
+
+      YouTubePlayer.playClip(clip.videoId, clipStart, clipPause, () => {
+        // Whistle moment reached — show decision UI
+        phase = 'deciding';
+        buildupIndicator.style.display = 'none';
+        decisionArea.style.display = 'block';
+      });
+    } else {
+      // Incident mode: existing behavior
+      phase = 'deciding';
+      makeCallBtn.style.display = 'inline-block';
+      buildupIndicator.style.display = 'none';
+
+      YouTubePlayer.playClip(clip.videoId, clipStart, clipPause, () => {
+        decisionArea.style.display = 'block';
+        makeCallBtn.style.display = 'none';
+      });
+    }
   }
 
   function showSummary() {
     showScreen(summaryScreen);
     const pct = answered > 0 ? Math.round((score / answered) * 100) : 0;
 
-    // Score color based on performance
     const scoreColor = pct >= 80 ? 'var(--green-light)' : pct >= 50 ? 'var(--yellow)' : 'var(--red-light)';
     const scoreEmoji = pct >= 80 ? 'Excellent' : pct >= 60 ? 'Good effort' : pct >= 40 ? 'Keep practising' : 'More work needed';
 
@@ -244,6 +298,7 @@
     YouTubePlayer.pause();
     decisionArea.style.display = 'block';
     makeCallBtn.style.display = 'none';
+    buildupIndicator.style.display = 'none';
   });
 
   nextBtn.addEventListener('click', () => {
@@ -257,7 +312,21 @@
 
   replayBtn.addEventListener('click', () => {
     const clip = clips[currentIndex];
-    YouTubePlayer.replay(clip.startTime, clip.endTime);
+    const clipStart = getClipStart(clip);
+    const clipPause = getClipPause(clip);
+    YouTubePlayer.replay(clipStart, clipPause);
+  });
+
+  // Watch Ref Decision button — plays aftermath of full game clips
+  watchRefBtn.addEventListener('click', () => {
+    const clip = clips[currentIndex];
+    if (!isFullGame(clip) || !clip.aftermathEnd) return;
+    phase = 'aftermath';
+    watchRefBtn.style.display = 'none';
+    YouTubePlayer.playAftermath(clip.whistleTime, clip.aftermathEnd, () => {
+      phase = 'decided';
+      // Aftermath finished — user can click Next Clip
+    });
   });
 
   document.getElementById('restart-btn')?.addEventListener('click', () => {

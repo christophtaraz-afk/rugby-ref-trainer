@@ -82,12 +82,17 @@
         <span class="clip-title" id="clip-title">Loading...</span>
         <div class="clip-meta">
           <span class="badge badge-medium" id="clip-difficulty">medium</span>
+          <span class="badge badge-fullgame" id="clip-mode" style="display: none;">Full Game</span>
           <span id="clip-level" style="color: var(--text-muted); font-size: 0.8rem;"></span>
         </div>
       </div>
 
       <div class="player-wrapper">
         <div id="yt-player"></div>
+        <div id="buildup-indicator" class="buildup-indicator" style="display: none;">
+          <div class="buildup-pulse"></div>
+          <span>Watch the play...</span>
+        </div>
       </div>
 
       <div style="text-align: center; margin-bottom: 12px;">
@@ -100,6 +105,7 @@
 
       <div class="result-actions" id="result-actions">
         <button id="replay-btn" class="btn btn-secondary">Replay Clip</button>
+        <button id="watch-ref-btn" class="btn btn-watch-ref" style="display: none;">Watch Ref Decision</button>
         <button id="next-btn" class="btn btn-primary">Next Clip</button>
       </div>
     </div>
